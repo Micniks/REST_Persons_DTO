@@ -108,18 +108,28 @@ public class PersonResourceTest {
     public void testDummyMsg() throws Exception {
         given()
                 .contentType("application/json")
-                .get("/person/").then()
-                .assertThat()
+                .get("/person/").then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("msg", equalTo("Hello World"));
+    }
+
+    @Test
+    public void testNegative_testRuntimeError() throws Exception {
+        Person expectedPerson = p1;
+
+        given()
+                .contentType("application/json")
+                .get("/person/errorTest").then().assertThat()
+                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500.getStatusCode())
+                .body("code", equalTo(500))
+                .body("message", equalTo("Internal Server Problem. We are sorry for the inconvenience"));
     }
 
     @Test
     public void testCount() throws Exception {
         given()
                 .contentType("application/json")
-                .get("/person/count").then()
-                .assertThat()
+                .get("/person/count").then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("count", equalTo(2));
     }
@@ -130,8 +140,7 @@ public class PersonResourceTest {
 
         given()
                 .contentType("application/json")
-                .get("/person/id/" + expectedPerson.getId()).then()
-                .assertThat()
+                .get("/person/id/" + expectedPerson.getId()).then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("fName", equalTo(expectedPerson.getfName()))
                 .body("lName", equalTo(expectedPerson.getlName()))
@@ -140,11 +149,22 @@ public class PersonResourceTest {
     }
 
     @Test
+    public void testNegative_GetPersonFromID_NotFound() throws Exception {
+        Long searchID = highestId + 1;
+
+        given()
+                .contentType("application/json")
+                .get("/person/id/" + searchID).then().assertThat()
+                .statusCode(HttpStatus.NOT_FOUND_404.getStatusCode())
+                .body("code", equalTo(404))
+                .body("message", equalTo("No person with provided id found"));
+    }
+
+    @Test
     public void testGetAll() throws Exception {
         PersonsDTO dbList = given()
                 .contentType("application/json")
-                .get("/person/all").then()
-                .assertThat()
+                .get("/person/all").then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .extract().body().as(PersonsDTO.class);
 
@@ -171,12 +191,8 @@ public class PersonResourceTest {
         highestId++;
         PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone);
         given()
-                .contentType("application/json")
-                .body(expectedPersonDTO)
-                .when()
-                .post("/person/add")
-                .then()
-                .assertThat()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/add").then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("fName", equalTo(expectedPersonDTO.getfName()))
                 .body("lName", equalTo(expectedPersonDTO.getlName()))
@@ -193,6 +209,62 @@ public class PersonResourceTest {
     }
 
     @Test
+    public void testNegative_AddPerson_MissingInput_FirstName_Null() throws Exception {
+        String newFirstName = null;
+        String newLastName = "Jackson";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone);
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/add").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
+    public void testNegative_AddPerson_MissingInput_FirstName_Empty() throws Exception {
+        String newFirstName = "";
+        String newLastName = "Jackson";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone);
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/add").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
+    public void testNegative_AddPerson_MissingInput_LastName_Null() throws Exception {
+        String newFirstName = "Michael";
+        String newLastName = null;
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone);
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/add").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
+    public void testNegative_AddPerson_MissingInput_LastName_Empty() throws Exception {
+        String newFirstName = "Michael";
+        String newLastName = "";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone);
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/add").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
     public void testEditPerson() throws Exception {
         Person expectedPerson = p2;
         String newFirstName = "Peter";
@@ -200,18 +272,93 @@ public class PersonResourceTest {
         String newPhone = "96396336";
         PersonDTO expectedPersonDTO = new PersonDTO(expectedPerson.getId(), newFirstName, newLastName, newPhone);
         given()
-                .contentType("application/json")
-                .body(expectedPersonDTO)
-                .when()
-                .post("/person/edit")
-                .then()
-                .assertThat()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/edit").then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("fName", equalTo(expectedPersonDTO.getfName()))
                 .body("lName", equalTo(expectedPersonDTO.getlName()))
                 .body("phone", equalTo(expectedPersonDTO.getPhone()))
                 .body("id", equalTo(Math.toIntExact(expectedPersonDTO.getId())));
+    }
 
+    @Test
+    public void testNegative_EditPerson_NotFound() throws Exception {
+        Long searchID = highestId + 1;
+        String newFirstName = "Peter";
+        String newLastName = "Jackson";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(searchID, newFirstName, newLastName, newPhone);
+
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/edit").then().assertThat()
+                .statusCode(HttpStatus.NOT_FOUND_404.getStatusCode())
+                .body("code", equalTo(404))
+                .body("message", equalTo("Could not edit, provided id does not exist"));
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_FirstName_Null() throws Exception {
+        Person expectedPerson = p2;
+        String newFirstName = null;
+        String newLastName = "Jackson";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(p2.getId(), newFirstName, newLastName, newPhone);
+
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/edit").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_FirstName_Empty() throws Exception {
+        Person expectedPerson = p2;
+        String newFirstName = "";
+        String newLastName = "Jackson";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(p2.getId(), newFirstName, newLastName, newPhone);
+
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/edit").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_LastName_Null() throws Exception {
+        Person expectedPerson = p2;
+        String newFirstName = "Michael";
+        String newLastName = null;
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(p2.getId(), newFirstName, newLastName, newPhone);
+
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/edit").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_LastName_Empty() throws Exception {
+        Person expectedPerson = p2;
+        String newFirstName = "Michael";
+        String newLastName = "";
+        String newPhone = "96396336";
+        PersonDTO expectedPersonDTO = new PersonDTO(p2.getId(), newFirstName, newLastName, newPhone);
+
+        given()
+                .contentType("application/json").body(expectedPersonDTO)
+                .when().post("/person/edit").then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST_400.getStatusCode())
+                .body("code", equalTo(400))
+                .body("message", equalTo("First Name and/or Last Name is missing"));
     }
 
     @Test
@@ -219,12 +366,8 @@ public class PersonResourceTest {
         Person expectedPerson = p2;
 
         given()
-                .contentType("application/json")
-                .body(new PersonDTO(expectedPerson))
-                .when()
-                .post("/person/delete")
-                .then()
-                .assertThat()
+                .contentType("application/json").body(new PersonDTO(expectedPerson))
+                .when().post("/person/delete").then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("fName", equalTo(expectedPerson.getfName()))
                 .body("lName", equalTo(expectedPerson.getlName()))
@@ -232,10 +375,41 @@ public class PersonResourceTest {
                 .body("id", equalTo(Math.toIntExact(expectedPerson.getId())));
 
         given()
-                .contentType("application/json")
-                .get("/person/count").then()
-                .assertThat()
+                .contentType("application/json").get("/person/count")
+                .then().assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
                 .body("count", equalTo(1));
+    }
+
+    @Test
+    public void testDeletePerson_SendOnlyID() throws Exception {
+        Person expectedPerson = p2;
+
+        given()
+                .contentType("application/json").body("{\"id\":" + expectedPerson.getId().toString() + "}")
+                .when().post("/person/delete").then().assertThat()
+                .statusCode(HttpStatus.OK_200.getStatusCode())
+                .body("fName", equalTo(expectedPerson.getfName()))
+                .body("lName", equalTo(expectedPerson.getlName()))
+                .body("phone", equalTo(expectedPerson.getPhone()))
+                .body("id", equalTo(Math.toIntExact(expectedPerson.getId())));
+
+        given()
+                .contentType("application/json").get("/person/count")
+                .then().assertThat()
+                .statusCode(HttpStatus.OK_200.getStatusCode())
+                .body("count", equalTo(1));
+    }
+
+    @Test
+    public void testNegative_DeletePerson_NotFound() throws Exception {
+        Long searchID = highestId + 1;
+
+        given()
+                .contentType("application/json").body("{\"id\":" + searchID.toString() + "}")
+                .when().post("/person/delete").then().assertThat()
+                .statusCode(HttpStatus.NOT_FOUND_404.getStatusCode())
+                .body("code", equalTo(404))
+                .body("message", equalTo("Could not delete, provided id does not exist"));
     }
 }

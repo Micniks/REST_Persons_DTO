@@ -8,6 +8,8 @@ package facades;
 import dto.PersonDTO;
 import dto.PersonsDTO;
 import entities.Person;
+import exceptions.MissingInputException;
+import exceptions.PersonNotFoundException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
@@ -125,7 +127,7 @@ public class PersonFacadeTest {
     }
 
     @Test
-    public void testAddPerson() {
+    public void testAddPerson() throws MissingInputException {
         String fName = "Jesus";
         String lName = "Christ";
         String phone = "13974268";
@@ -160,7 +162,51 @@ public class PersonFacadeTest {
     }
 
     @Test
-    public void testDeletePerson() {
+    public void testNegative_AddPerson_MissingInput_FirstName_Null() {
+        String fName = null;
+        String lName = "Christ";
+        String phone = "13974268";
+
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.addPerson(fName, lName, phone);
+        });
+    }
+
+    @Test
+    public void testNegative_AddPerson_MissingInput_FirstName_Empty() {
+        String fName = "";
+        String lName = "Christ";
+        String phone = "13974268";
+
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.addPerson(fName, lName, phone);
+        });
+    }
+
+    @Test
+    public void testNegative_AddPerson_MissingInput_LastName_Null() {
+        String fName = "Jesus";
+        String lName = null;
+        String phone = "13974268";
+
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.addPerson(fName, lName, phone);
+        });
+    }
+
+    @Test
+    public void testNegative_AddPerson_MissingInput_LastName_Empty() {
+        String fName = "Jesus";
+        String lName = "";
+        String phone = "13974268";
+
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.addPerson(fName, lName, phone);
+        });
+    }
+
+    @Test
+    public void testDeletePerson() throws PersonNotFoundException {
         Long id = p1.getId();
         PersonDTO result = PF.deletePerson(id);
 
@@ -184,7 +230,16 @@ public class PersonFacadeTest {
     }
 
     @Test
-    public void testEditPerson() {
+    public void testNegative_DeletePerson_NotFound() {
+        Long searchID = highestId + 1;
+
+        assertThrows(PersonNotFoundException.class, () -> {
+            PersonDTO result = PF.deletePerson(searchID);
+        });
+    }
+
+    @Test
+    public void testEditPerson() throws PersonNotFoundException, MissingInputException {
         Person expectedPerson = p1;
 
         expectedPerson.setPhone("85858585");
@@ -219,6 +274,78 @@ public class PersonFacadeTest {
     }
 
     @Test
+    public void testNegative_EditPerson_NotFound() {
+        Long searchID = highestId + 1;
+        Person expectedPerson = p1;
+
+        expectedPerson.setPhone("85858585");
+        expectedPerson.setfName("Mr.");
+        expectedPerson.setlName("T");
+
+        expectedPerson.setId(searchID);
+        PersonDTO editPerson = new PersonDTO(expectedPerson);
+        assertThrows(PersonNotFoundException.class, () -> {
+            PersonDTO result = PF.editPerson(editPerson);
+        });
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_FirstName_Null() {
+        Person expectedPerson = p1;
+
+        expectedPerson.setPhone("85858585");
+        expectedPerson.setfName(null);
+        expectedPerson.setlName("Thomasen");
+
+        PersonDTO editPerson = new PersonDTO(expectedPerson);
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.editPerson(editPerson);
+        });
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_FirstName_Empty() {
+        Person expectedPerson = p1;
+
+        expectedPerson.setPhone("85858585");
+        expectedPerson.setfName("");
+        expectedPerson.setlName("Thomasen");
+
+        PersonDTO editPerson = new PersonDTO(expectedPerson);
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.editPerson(editPerson);
+        });
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_LastName_Null() {
+        Person expectedPerson = p1;
+
+        expectedPerson.setPhone("85858585");
+        expectedPerson.setfName("Alex");
+        expectedPerson.setlName(null);
+
+        PersonDTO editPerson = new PersonDTO(expectedPerson);
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.editPerson(editPerson);
+        });
+    }
+
+    @Test
+    public void testNegative_EditPerson_MissingInput_LastName_Empty() {
+        Person expectedPerson = p1;
+
+        expectedPerson.setPhone("85858585");
+        expectedPerson.setfName("Alex");
+        expectedPerson.setlName("");
+
+        PersonDTO editPerson = new PersonDTO(expectedPerson);
+        assertThrows(MissingInputException.class, () -> {
+            PersonDTO result = PF.editPerson(editPerson);
+        });
+    }
+
+    @Test
     public void testGetAllPersons() {
         PersonsDTO result = PF.getAllPersons();
 
@@ -249,7 +376,7 @@ public class PersonFacadeTest {
     }
 
     @Test
-    public void testGetPerson() {
+    public void testGetPerson() throws PersonNotFoundException {
         Person expectedPerson = p1;
         Long id = expectedPerson.getId();
         PersonDTO result = PF.getPerson(id);
@@ -266,7 +393,7 @@ public class PersonFacadeTest {
         Long id = expectedPerson.getId();
         cleanUp();
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(PersonNotFoundException.class, () -> {
             PersonDTO result = PF.getPerson(id);
         });
 

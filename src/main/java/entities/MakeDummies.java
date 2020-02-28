@@ -1,5 +1,6 @@
 package entities;
 
+import exceptions.MissingInputException;
 import facades.IPersonFacade;
 import facades.PersonFacade;
 import javax.persistence.EntityManager;
@@ -16,7 +17,7 @@ public class MakeDummies {
             EMF_Creator.Strategy.CREATE);
     private static final IPersonFacade FACADE = PersonFacade.getPersonFacade(EMF);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MissingInputException {
         
         EntityManager em = EMF.createEntityManager();
         try {

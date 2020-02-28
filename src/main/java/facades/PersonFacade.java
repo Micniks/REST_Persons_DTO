@@ -3,6 +3,7 @@ package facades;
 import dto.PersonDTO;
 import dto.PersonsDTO;
 import entities.Person;
+import exceptions.MissingInputException;
 import exceptions.PersonNotFoundException;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +54,12 @@ public class PersonFacade implements IPersonFacade {
     }
 
     @Override
-    public PersonDTO addPerson(String fName, String lName, String phone) {
+    public PersonDTO addPerson(String fName, String lName, String phone) throws MissingInputException {
+        boolean fNameMissing = (fName == null || fName.isEmpty());
+        boolean lNameMissing = (lName == null || lName.isEmpty());
+        if(fNameMissing || lNameMissing){
+            throw new MissingInputException("First Name and/or Last Name is missing");
+        }
         Person person = new Person(fName, lName, phone);
         EntityManager em = emf.createEntityManager();
         try {
@@ -111,7 +117,12 @@ public class PersonFacade implements IPersonFacade {
     }
 
     @Override
-    public PersonDTO editPerson(PersonDTO p) throws PersonNotFoundException {
+    public PersonDTO editPerson(PersonDTO p) throws PersonNotFoundException, MissingInputException {
+        boolean fNameMissing = (p.getfName() == null || p.getfName().isEmpty());
+        boolean lNameMissing = (p.getlName() == null || p.getlName().isEmpty());
+        if(fNameMissing || lNameMissing){
+            throw new MissingInputException("First Name and/or Last Name is missing");
+        }
         EntityManager em = emf.createEntityManager();
         try {
             Person person = em.find(Person.class, p.getId());

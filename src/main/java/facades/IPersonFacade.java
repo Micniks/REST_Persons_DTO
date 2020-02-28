@@ -2,11 +2,12 @@ package facades;
 
 import dto.PersonDTO;
 import dto.PersonsDTO;
+import exceptions.MissingInputException;
 import exceptions.PersonNotFoundException;
 
 public interface IPersonFacade {
 
-    public PersonDTO addPerson(String fName, String lName, String phone);
+    public PersonDTO addPerson(String fName, String lName, String phone) throws MissingInputException;
 
     public PersonDTO deletePerson(Long id) throws PersonNotFoundException;
 
@@ -14,6 +15,6 @@ public interface IPersonFacade {
 
     public PersonsDTO getAllPersons();
 
-    public PersonDTO editPerson(PersonDTO p) throws PersonNotFoundException;
+    public PersonDTO editPerson(PersonDTO p) throws PersonNotFoundException, MissingInputException;
 
 }
