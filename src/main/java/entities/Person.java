@@ -3,13 +3,14 @@ package entities;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Date;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Temporal;
-
 
 @Entity
 @NamedQuery(name = "Person.deleteAllRows", query = "DELETE from Person")
@@ -26,7 +27,10 @@ public class Person implements Serializable {
     private Date created;
     @Temporal(javax.persistence.TemporalType.DATE)
     private Date lastEdited;
-    
+
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Address address;
+
     public Person() {
     }
 
@@ -34,10 +38,35 @@ public class Person implements Serializable {
         this.fName = fName;
         this.lName = lName;
         this.phone = phone;
+        this.address = null;
         this.created = Date.from(Instant.now());
         this.lastEdited = Date.from(Instant.now());
     }
-    
+
+    public Person(String fName, String lName, String phone, Address address) {
+        this.fName = fName;
+        this.lName = lName;
+        this.phone = phone;
+        this.address = address;
+        this.created = Date.from(Instant.now());
+        this.lastEdited = Date.from(Instant.now());
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public void addAddress(Address address) {
+        this.address = address;
+        if (!address.getPersons().contains(this)) {
+            address.addPerson(this);
+        }
+    }
+
     public String getfName() {
         return fName;
     }
@@ -77,9 +106,7 @@ public class Person implements Serializable {
     public void setLastEdited(Date lastEdited) {
         this.lastEdited = lastEdited;
     }
-    
-    
-        
+
     public Long getId() {
         return id;
     }
@@ -87,11 +114,5 @@ public class Person implements Serializable {
     public void setId(Long id) {
         this.id = id;
     }
-    
-    
-    
-    
-    
 
-   
 }

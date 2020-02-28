@@ -3,6 +3,7 @@ package rest;
 import com.google.gson.Gson;
 import dto.PersonDTO;
 import dto.PersonsDTO;
+import entities.Address;
 import entities.Person;
 import utils.EMF_Creator;
 import io.restassured.RestAssured;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.EMF_Creator.DbSelector;
 import utils.EMF_Creator.Strategy;
@@ -36,6 +38,7 @@ public class PersonResourceTest {
     private static final int SERVER_PORT = 7777;
     private static final String SERVER_URL = "http://localhost/api";
     private static Person p1, p2;
+    private static Address a1;
     private static List<Person> personList = new ArrayList();
     private static Long highestId;
 
@@ -74,7 +77,8 @@ public class PersonResourceTest {
     @BeforeEach
     public void setUp() {
         EntityManager em = emf.createEntityManager();
-        p1 = new Person("Jack", "Daniels", "26 68 84 42");
+        a1 = new Address("Hidden Street", "Bornholm", 2800);
+        p1 = new Person("Jack", "Daniels", "26 68 84 42", a1);
         p2 = new Person("Captain", "Morgan", "66 66 66 66");
         personList.clear();
         personList.add(p1);
@@ -82,6 +86,7 @@ public class PersonResourceTest {
         try {
             em.getTransaction().begin();
             em.createNamedQuery("Person.deleteAllRows").executeUpdate();
+            em.createNamedQuery("Address.deleteAllRows").executeUpdate();
             em.persist(p1);
             em.persist(p2);
             em.getTransaction().commit();
@@ -188,8 +193,11 @@ public class PersonResourceTest {
         String newFirstName = "Peter";
         String newLastName = "Jackson";
         String newPhone = "96396336";
+        String newStreet = "Mafia Street";
+        String newCity = "Copenhagen";
+        int newZip = 2648;
         highestId++;
-        PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone);
+        PersonDTO expectedPersonDTO = new PersonDTO(null, newFirstName, newLastName, newPhone, newStreet, newCity, newZip);
         given()
                 .contentType("application/json").body(expectedPersonDTO)
                 .when().post("/person/add").then().assertThat()
@@ -270,7 +278,10 @@ public class PersonResourceTest {
         String newFirstName = "Peter";
         String newLastName = "Jackson";
         String newPhone = "96396336";
-        PersonDTO expectedPersonDTO = new PersonDTO(expectedPerson.getId(), newFirstName, newLastName, newPhone);
+        String newStreet = "Mafia Street";
+        String newCity = "Copenhagen";
+        int newZip = 2648;
+        PersonDTO expectedPersonDTO = new PersonDTO(expectedPerson.getId(), newFirstName, newLastName, newPhone, newStreet, newCity, newZip);
         given()
                 .contentType("application/json").body(expectedPersonDTO)
                 .when().post("/person/edit").then().assertThat()
@@ -287,7 +298,10 @@ public class PersonResourceTest {
         String newFirstName = "Peter";
         String newLastName = "Jackson";
         String newPhone = "96396336";
-        PersonDTO expectedPersonDTO = new PersonDTO(searchID, newFirstName, newLastName, newPhone);
+        String newStreet = "Mafia Street";
+        String newCity = "Copenhagen";
+        int newZip = 2648;
+        PersonDTO expectedPersonDTO = new PersonDTO(searchID, newFirstName, newLastName, newPhone, newStreet, newCity, newZip);
 
         given()
                 .contentType("application/json").body(expectedPersonDTO)

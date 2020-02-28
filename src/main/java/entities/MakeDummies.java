@@ -18,7 +18,7 @@ public class MakeDummies {
     private static final IPersonFacade FACADE = PersonFacade.getPersonFacade(EMF);
 
     public static void main(String[] args) throws MissingInputException {
-        
+
         EntityManager em = EMF.createEntityManager();
         try {
             em.getTransaction().begin();
@@ -28,9 +28,9 @@ public class MakeDummies {
             em.close();
         }
 
-        FACADE.addPerson("Jack", "Daniels", "78451293");
-        FACADE.addPerson("Captain", "Morgan", "97643185");
-        FACADE.addPerson("Michael", "Jackson", "19374628");
+        FACADE.addPerson("Jack", "Daniels", "78451293", "Hidden Street", "Hidden City", 2000);
+        FACADE.addPerson("Captain", "Morgan", "97643185", "Hidden Street", "Hidden City", 2000);
+        FACADE.addPerson("Michael", "Jackson", "19374628", "Hidden Street", "Hidden City", 2000);
 
     }
 }
